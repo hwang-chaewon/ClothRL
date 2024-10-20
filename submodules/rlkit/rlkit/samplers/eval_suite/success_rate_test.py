@@ -11,9 +11,6 @@ class SuccessRateTest(EvalTest):
     def single_evaluation(self, eval_number: int) -> dict:
         trajectory_log = pd.DataFrame()
 
-        #********바꾼부분: 저장*******************
-        # save_images = (self.epoch % self.save_images_every_epoch == 0) and (
-        #     eval_number == 0)
         save_images = (self.epoch % self.save_images_every_epoch == 0)
 
         if save_images:
@@ -24,19 +21,12 @@ class SuccessRateTest(EvalTest):
 
         path_length = 0
 
-        #********바꾼부분: 양팔 (0921) *******************
-        # o = self.env.reset()
-
         d = False
         success = False
 
         while path_length < self.max_path_length:
             print("---------- [3] get_action ", path_length, " / ", self.max_path_length, "------------")
-            
-            #********바꾼부분: 양팔 (0920) *******************
-            # self.env.step_2()
-            # o=self.env.get_obs()
-            #********바꾼부분: 양팔 (0921) *******************
+
             o = self.env.reset()
 
             o_for_agent = self.obs_preprocessor(o)
@@ -48,10 +38,6 @@ class SuccessRateTest(EvalTest):
                 cv2.imwrite(
                     f"{self.base_save_folder}/epochs/{self.epoch}/{self.name}/blurred_cnn/{str(path_length).zfill(3)}.png", image[0])
                 
-            #**********바꾼부분**********************#
-            # if save_images:
-            #     save_regular_images(
-            #         self.env, self.base_save_folder, self.name, self.epoch, path_length, aux_output)
             save_regular_images(
                 self.env, self.base_save_folder, self.name, self.epoch, path_length, aux_output)
             
@@ -66,8 +52,6 @@ class SuccessRateTest(EvalTest):
 
             path_length += 1
 
-            #************바꾼부분***************#
-            # if env_info['is_success']:
             if np.sum(env_info['is_success']) >= len(env_info['is_success']) / 2:
                 success = True
 

@@ -27,7 +27,6 @@ class FutureObsDictRelabelingBuffer(ReplayBuffer):
             action_space,
             task_reward_function,
 
-            #****************바꾼부분************#
             camera_matrix,
             image_reward,
 
@@ -39,7 +38,6 @@ class FutureObsDictRelabelingBuffer(ReplayBuffer):
             achieved_goal_key='achieved_goal',
 
     ):
-        #****************바꾼부분************#
         self.camera_matrix=camera_matrix
         self.image_reward=image_reward
 
@@ -246,12 +244,6 @@ class FutureObsDictRelabelingBuffer(ReplayBuffer):
         new_actions = self._actions[indices]
         corner_positions = self._corner_positions[indices]
 
-        #****************바꾼부분****************#
-        # new_task_rewards = self.task_reward_function(
-        #     new_next_obs_dict[self.achieved_goal_key],
-        #     new_next_obs_dict[self.desired_goal_key],
-        #     dict(num_future_goals=num_future_goals)
-        # )
         new_task_rewards = self.task_reward_function(
             self.image_reward, self.camera_matrix
         )
@@ -268,7 +260,6 @@ class FutureObsDictRelabelingBuffer(ReplayBuffer):
             'rewards': new_rewards,
             'terminals': self._terminals[indices],
 
-            #***************바꾼부분********************
             'camera_matrix': self.camera_matrix,
             'image_reward': self.image_reward,
 

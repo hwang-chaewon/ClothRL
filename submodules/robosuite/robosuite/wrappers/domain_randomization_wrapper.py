@@ -212,17 +212,8 @@ class DomainRandomizationWrapper(Wrapper):
             
             if materials_randomization or dynamics_randomization:
                 self.env.setup_xml_model(randomize=dynamics_randomization)
-                #*****바꾼부분: 양팔 (0920) *********
-                # self.env.setup_xml_model_2(randomize=dynamics_randomization)
 
-            #self.restore_default_domain()
-            # normal env reset
             ret = super().reset()
-
-            # save the original env parameters
-            #self.save_default_domain()
-
-            # reset counter for doing domain randomization at a particular frequency
             self.step_counter = 0
 
             # update sims

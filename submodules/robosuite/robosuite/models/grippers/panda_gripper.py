@@ -15,8 +15,6 @@ class PandaGripperBase(GripperModel):
     """
 
     def __init__(self, idn=0):
-        #*********바꾼부분: grasp*******************************
-        # super().__init__(xml_path_completion("grippers/panda_gripper.xml"), idn=idn)
         super().__init__("/home/hcw/DualRL/submodules/robosuite/robosuite/models/assets/grippers/panda_gripper.xml", idn=idn)
 
     def format_action(self, action):

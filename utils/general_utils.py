@@ -131,7 +131,6 @@ def argsparser():
     parser.add_argument('--run', type=int, default=0)
     parser.add_argument('--num-processes', type=int, default=1)
 
-    #***************바꾼부분*********************#
     # Train
     parser.add_argument('--train-steps', default=50, type=int)  # Per cycle #1000  #최소: 50
     parser.add_argument('--num-epochs', default=1, type=int)  #100
@@ -156,12 +155,10 @@ def argsparser():
     # How many of the envs only execute demos
     parser.add_argument('--num-demoers', type=int, default=0)
 
-    #*********바꾼부분**************************
     # Maximum length for episode
     parser.add_argument('--max-path-length', default=30, 
                         type=int)  #50
     
-    #************바꾼부분: 시각화*****************************
     # Maximum number of steps the agent is within goal threshold i.e. the task is successful
     parser.add_argument('--max-close-steps', default=30, type=int)   #10
 
@@ -182,8 +179,6 @@ def argsparser():
                         default=0.2, type=float)
 
     # Camera
-    #*************바꾼부분: 카메라 (0908) *************************
-    # parser.add_argument('--camera-type', choices=["up", "side", "front", "all"], default="side")
     parser.add_argument('--camera-type', choices="front", default="front")
     parser.add_argument('--camera-config', choices=["small", "large"], default="large") #default="small"  
 
@@ -197,7 +192,7 @@ def argsparser():
 
     # Which observations from the robot to consider
     parser.add_argument('--robot-observation',
-                        choices=["ee", "ctrl", "none"], default="ctrl") #**바꾼부분: 액션 (0922)*** #default="ctrl"
+                        choices=["ee", "ctrl", "none"], default="ctrl")
 
     # Filter value to use for controller interpolation
     parser.add_argument('--filter', type=float, default=0.03)
@@ -214,7 +209,6 @@ def argsparser():
     parser.add_argument('--frame-stack-size', type=int, default=1)
     parser.add_argument('--sparse-dense', type=int, default=1)
     parser.add_argument('--goal-noise', type=float, default=0.03)
-    #***************바꾼부분**************************#
     parser.add_argument('--success-reward', type=int, default=1)   #0
     parser.add_argument('--fail-reward', type=int, default=0)  #-1
     # For sparse dense i.e. extra for being closer to the goal

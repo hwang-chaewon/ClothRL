@@ -31,8 +31,6 @@ def vec_env_rollout(
 
     path_length = 0
     agent.reset()
-    #********바꾼부분: 양팔 (0921) *******************
-    # o = env.reset()
 
     done_indices = []
     use_demos = num_demoers > 0
@@ -43,11 +41,6 @@ def vec_env_rollout(
 
     while path_length < max_path_length:
         print("------------ [1] path length: ", path_length, " / max_path_length: ", max_path_length,"-------------")
-
-        #********바꾼부분: 양팔 (0920) *******************
-        # env.step_2()
-        # o=env.get_obs()
-        #********바꾼부분: 양팔 (0921) *******************
         o = env.reset()
 
         o_for_agent = preprocess_obs_for_policy_fn(o)

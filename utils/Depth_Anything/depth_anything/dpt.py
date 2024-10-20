@@ -148,12 +148,6 @@ class DPT_DINOv2(nn.Module):
         
         assert encoder in ['vits', 'vitb', 'vitl']
         
-        # in case the Internet connection is not stable, please load the DINOv2 locally
-        #*************바꾼부분********************#
-        # if localhub:
-        #     self.pretrained = torch.hub.load('/home/hcw/DualRL/utils/Depth_Anything/torchhub/facebookresearch_dinov2_main', 'dinov2_{:}14'.format(encoder), source='local', pretrained=False)
-        # else:
-        #     self.pretrained = torch.hub.load('facebookresearch/dinov2', 'dinov2_{:}14'.format(encoder))
         if localhub:
             print("load depth model from local")
         self.pretrained = torch.hub.load('/home/hcw/DualRL/utils/Depth_Anything/torchhub/facebookresearch_dinov2_main', 'dinov2_{:}14'.format(encoder), source='local', pretrained=False)        

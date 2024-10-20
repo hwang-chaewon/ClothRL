@@ -203,14 +203,6 @@ class SACTrainer(TorchTrainer, LossFunction):
             self.target_qf2(value_next_obs, new_next_actions),
         ) - alpha * new_log_pi
 
-        #***************바꾼부분***************#
-        # device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
-        # rewards = rewards.to(device)
-        # target_q_values = target_q_values.to(device)
-        # padding_size = (target_q_values.size(0) - rewards.size(0) % target_q_values.size(0)) % target_q_values.size(0)
-        # if padding_size > 0:
-        #     padding = torch.zeros(padding_size, 1)
-        #     rewards = torch.cat([rewards, padding], dim=0)
         adjusted_size = (rewards.size(0) // target_q_values.size(0)) * target_q_values.size(0)
         rewards = rewards[:adjusted_size]
         factor = rewards.size(0) // target_q_values.size(0)

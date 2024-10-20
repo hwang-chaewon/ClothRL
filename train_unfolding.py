@@ -15,12 +15,10 @@ from rlkit.launchers import launcher_util
 from rlkit.envs import wrappers
 
 from rlkit.samplers.eval_suite import success_rate_test, eval_suite, real_corner_prediction_test
-#************************************#
 from rlkit.samplers.eval_suite import folding_test
 from rlkit.samplers import data_collector
 from rlkit.data_management import future_obs_dict_replay_buffer
 
-#**********바꾼부분: CUDA error*******************#
 import os
 os.environ['CUDA_LAUNCH_BLOCKING'] = '1'
 
@@ -32,10 +30,8 @@ logging.basicConfig(level=logging.DEBUG, format='%(message)s')
 
 
 def experiment(variant):
-    #*************바꾼부분: 시각화***********************#
     print("at eval_env")
     eval_env = cloth_env_unfolding_dualarm.ClothEnv(**variant['env_kwargs'], randomization_kwargs=variant['randomization_kwargs'])
-    # eval_env = gym.make('DualRLenv-v0',**variant['env_kwargs'],randomization_kwargs=variant['randomization_kwargs'])
     
     randomized_eval_env = general_utils.get_randomized_env(wrappers.NormalizedBoxEnv(eval_env), randomization_kwargs=variant['randomization_kwargs'])
 
@@ -82,21 +78,14 @@ def experiment(variant):
         **variant['eval_kwargs'],
     )
 
-    #********바꾼부분*******************#
     evaluation_suite = eval_suite.EvalTestSuite(tests=[success_test])
 
     def make_worker_env_function():
-        #***********바꾼부분: 시각화***********************
         print("at vec_env")
-        # return general_utils.get_randomized_env(wrappers.NormalizedBoxEnv(cloth_env_unfolding.ClothEnv(**variant['env_kwargs'], randomization_kwargs=variant['randomization_kwargs'])), randomization_kwargs=variant['randomization_kwargs'])
-        # vec_env = cloth_env_unfolding.ClothEnv(**variant['env_kwargs'], randomization_kwargs=variant['randomization_kwargs'])    
-        # return general_utils.get_randomized_env(wrappers.NormalizedBoxEnv(vec_env), randomization_kwargs=variant['randomization_kwargs'])
         return cloth_env_unfolding_dualarm.ClothEnv(**variant['env_kwargs'], randomization_kwargs=variant['randomization_kwargs'])    
 
-    #***********바꾼부분***********************
     env_functions = [make_worker_env_function for _ in range(variant['path_collector_kwargs']['num_processes'])]
     vec_env = wrappers.SubprocVecEnv(env_functions)
-    # vec_env = wrappers.SubprocVecEnv([make_worker_env_function])
 
     exploration_path_collector = data_collector.VectorizedKeyPathCollector(
         vec_env,
@@ -106,9 +95,7 @@ def experiment(variant):
         **variant['path_collector_kwargs'],
     )
 
-    #******************바꾼부분******************
     camera_matrix, _=eval_env.get_camera_matrices(eval_env.train_camera, eval_env.image_size[0], eval_env.image_size[1])
-    # print("eval_env.train_camera: ", eval_env.train_camera)
     _,image_reward=eval_env.get_image_obs() # image=eval_env.get_image_obs()[1]
     
     
@@ -120,7 +107,6 @@ def experiment(variant):
         desired_goal_key=env_keys['desired_goal_key'],
         achieved_goal_key=env_keys['achieved_goal_key'],
 
-        #******************바꾼부분******************
         camera_matrix=camera_matrix,
         image_reward=image_reward,
 
@@ -160,7 +146,6 @@ def experiment(variant):
 
 if __name__ == "__main__":
     args = general_utils.argsparser()
-    #************************************#
     variant = general_utils.get_variant(args, algorithm="SAC")
 
     general_utils.setup_training_device()

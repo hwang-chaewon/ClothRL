@@ -116,356 +116,8 @@
             <geom group="0" type="sphere" size="{{ geom_size }}" rgba="0 0 1 0.8" friction='{{ friction }} {{ friction }} {{ friction }}' solimp="{{geom_solimp_low}} {{geom_solimp_high}} {{geom_solimp_width}}" solref="{{geom_solref_timeconst}} {{geom_solref_dampratio}}" condim='4' />
         </composite>
 
-        <!--바꾼부분: 카메라 (1008) 이거는 view를 조절하는 게 아니라 거리만 조절함.. 왠지는 모르겠음...-->
         <body mocap="true" name="lookatbody" pos="0.49476399 0.00668401 0.13310541" />
-        <!-- <body mocap="true" name="lookatbody" pos="-0.05 -0.05  -0.075" /> -->
-
-        <!--바꾼부분: 그랩 (1009) 버전3-->
-        <!-- <body mocap="true" name="singlemocap" pos="0 0 0" />
-        <body mocap="true" name="policymocap" pos="0 0 0" /> -->
-
-        <!--바꾼부분: 옷 (1017)-->
-        <!-- <body name="B0_9"/>
-        <body name="B0_10"/>
-        <body name="B0_11"/>
-        <body name="B0_12"/>
-        <body name="B0_13"/>
-        <body name="B0_14"/>
-        <body name="B0_15"/>
-        <body name="B0_16"/>
-        <body name="B0_17"/>
-        <body name="B0_18"/>
-        <body name="B0_19"/>
-
-        <body name="B1_9"/>
-        <body name="B1_10"/>
-        <body name="B1_11"/>
-        <body name="B1_12"/>
-        <body name="B1_13"/>
-        <body name="B1_14"/>
-        <body name="B1_15"/>
-        <body name="B1_16"/>
-        <body name="B1_17"/>
-        <body name="B1_18"/>
-        <body name="B1_19"/>
-
-        <body name="B2_9"/>
-        <body name="B2_10"/>
-        <body name="B2_11"/>
-        <body name="B2_12"/>
-        <body name="B2_13"/>
-        <body name="B2_14"/>
-        <body name="B2_15"/>
-        <body name="B2_16"/>
-        <body name="B2_17"/>
-        <body name="B2_18"/>
-        <body name="B2_19"/>
-
-        <body name="B3_9"/>
-        <body name="B3_10"/>
-        <body name="B3_11"/>
-        <body name="B3_12"/>
-        <body name="B3_13"/>
-        <body name="B3_14"/>
-        <body name="B3_15"/>
-        <body name="B3_16"/>
-        <body name="B3_17"/>
-        <body name="B3_18"/>
-        <body name="B3_19"/>
-
-        <body name="B4_9"/>
-        <body name="B4_10"/>
-        <body name="B4_11"/>
-        <body name="B4_12"/>
-        <body name="B4_13"/>
-        <body name="B4_14"/>
-        <body name="B4_15"/>
-        <body name="B4_16"/>
-        <body name="B4_17"/>
-        <body name="B4_18"/>
-        <body name="B4_19"/>
-
-        <body name="B5_9"/>
-        <body name="B5_10"/>
-        <body name="B5_11"/>
-        <body name="B5_12"/>
-        <body name="B5_13"/>
-        <body name="B5_14"/>
-        <body name="B5_15"/>
-        <body name="B5_16"/>
-        <body name="B5_17"/>
-        <body name="B5_18"/>
-        <body name="B5_19"/>
-
-        <body name="B6_9"/>
-        <body name="B6_10"/>
-        <body name="B6_11"/>
-        <body name="B6_12"/>
-        <body name="B6_13"/>
-        <body name="B6_14"/>
-        <body name="B6_15"/>
-        <body name="B6_16"/>
-        <body name="B6_17"/>
-        <body name="B6_18"/>
-        <body name="B6_19"/>
-
-        <body name="B7_9"/>
-        <body name="B7_10"/>
-        <body name="B7_11"/>
-        <body name="B7_12"/>
-        <body name="B7_13"/>
-        <body name="B7_14"/>
-        <body name="B7_15"/>
-        <body name="B7_16"/>
-        <body name="B7_17"/>
-        <body name="B7_18"/>
-        <body name="B7_19"/>
-
-        <body name="B8_9"/>
-        <body name="B8_10"/>
-        <body name="B8_11"/>
-        <body name="B8_12"/>
-        <body name="B8_13"/>
-        <body name="B8_14"/>
-        <body name="B8_15"/>
-        <body name="B8_16"/>
-        <body name="B8_17"/>
-        <body name="B8_18"/>
-        <body name="B8_19"/>
-
-        <body name="B9_0"/>
-        <body name="B9_1"/>
-        <body name="B9_2"/>
-        <body name="B9_3"/>
-        <body name="B9_4"/>
-        <body name="B9_5"/>
-        <body name="B9_6"/>
-        <body name="B9_7"/>
-        <body name="B9_8"/>
-        <body name="B9_9"/>
-        <body name="B9_10"/>
-        <body name="B9_11"/>
-        <body name="B9_12"/>
-        <body name="B9_13"/>
-        <body name="B9_14"/>
-        <body name="B9_15"/>
-        <body name="B9_16"/>
-        <body name="B9_17"/>
-        <body name="B9_18"/>
-        <body name="B9_19"/>
-
-        <body name="B10_0"/>
-        <body name="B10_1"/>
-        <body name="B10_2"/>
-        <body name="B10_3"/>
-        <body name="B10_4"/>
-        <body name="B10_5"/>
-        <body name="B10_6"/>
-        <body name="B10_7"/>
-        <body name="B10_8"/>
-        <body name="B10_9"/>
-        <body name="B10_10"/>
-        <body name="B10_11"/>
-        <body name="B10_12"/>
-        <body name="B10_13"/>
-        <body name="B10_14"/>
-        <body name="B10_15"/>
-        <body name="B10_16"/>
-        <body name="B10_17"/>
-        <body name="B10_18"/>
-        <body name="B10_19"/>
-
-        <body name="B11_0"/>
-        <body name="B11_1"/>
-        <body name="B11_2"/>
-        <body name="B11_3"/>
-        <body name="B11_4"/>
-        <body name="B11_5"/>
-        <body name="B11_6"/>
-        <body name="B11_7"/>
-        <body name="B11_8"/>
-        <body name="B11_9"/>
-        <body name="B11_10"/>
-        <body name="B11_11"/>
-        <body name="B11_12"/>
-        <body name="B11_13"/>
-        <body name="B11_14"/>
-        <body name="B11_15"/>
-        <body name="B11_16"/>
-        <body name="B11_17"/>
-        <body name="B11_18"/>
-        <body name="B11_19"/>
-
-        <body name="B12_0"/>
-        <body name="B12_1"/>
-        <body name="B12_2"/>
-        <body name="B12_3"/>
-        <body name="B12_4"/>
-        <body name="B12_5"/>
-        <body name="B12_6"/>
-        <body name="B12_7"/>
-        <body name="B12_8"/>
-        <body name="B12_9"/>
-        <body name="B12_10"/>
-        <body name="B12_11"/>
-        <body name="B12_12"/>
-        <body name="B12_13"/>
-        <body name="B12_14"/>
-        <body name="B12_15"/>
-        <body name="B12_16"/>
-        <body name="B12_17"/>
-        <body name="B12_18"/>
-        <body name="B12_19"/>
-
-        <body name="B13_0"/>
-        <body name="B13_1"/>
-        <body name="B13_2"/>
-        <body name="B13_3"/>
-        <body name="B13_4"/>
-        <body name="B13_5"/>
-        <body name="B13_6"/>
-        <body name="B13_7"/>
-        <body name="B13_8"/>
-        <body name="B13_9"/>
-        <body name="B13_10"/>
-        <body name="B13_11"/>
-        <body name="B13_12"/>
-        <body name="B13_13"/>
-        <body name="B13_14"/>
-        <body name="B13_15"/>
-        <body name="B13_16"/>
-        <body name="B13_17"/>
-        <body name="B13_18"/>
-        <body name="B13_19"/>
-
-        <body name="B14_0"/>
-        <body name="B14_1"/>
-        <body name="B14_2"/>
-        <body name="B14_3"/>
-        <body name="B14_4"/>
-        <body name="B14_5"/>
-        <body name="B14_6"/>
-        <body name="B14_7"/>
-        <body name="B14_8"/>
-        <body name="B14_9"/>
-        <body name="B14_10"/>
-        <body name="B14_11"/>
-        <body name="B14_12"/>
-        <body name="B14_13"/>
-        <body name="B14_14"/>
-        <body name="B14_15"/>
-        <body name="B14_16"/>
-        <body name="B14_17"/>
-        <body name="B14_18"/>
-        <body name="B14_19"/>
-
-        <body name="B15_0"/>
-        <body name="B15_1"/>
-        <body name="B15_2"/>
-        <body name="B15_3"/>
-        <body name="B15_4"/>
-        <body name="B15_5"/>
-        <body name="B15_6"/>
-        <body name="B15_7"/>
-        <body name="B15_8"/>
-        <body name="B15_9"/>
-        <body name="B15_10"/>
-        <body name="B15_11"/>
-        <body name="B15_12"/>
-        <body name="B15_13"/>
-        <body name="B15_14"/>
-        <body name="B15_15"/>
-        <body name="B15_16"/>
-        <body name="B15_17"/>
-        <body name="B15_18"/>
-        <body name="B15_19"/>
-
-        <body name="B16_0"/>
-        <body name="B16_1"/>
-        <body name="B16_2"/>
-        <body name="B16_3"/>
-        <body name="B16_4"/>
-        <body name="B16_5"/>
-        <body name="B16_6"/>
-        <body name="B16_7"/>
-        <body name="B16_8"/>
-        <body name="B16_9"/>
-        <body name="B16_10"/>
-        <body name="B16_11"/>
-        <body name="B16_12"/>
-        <body name="B16_13"/>
-        <body name="B16_14"/>
-        <body name="B16_15"/>
-        <body name="B16_16"/>
-        <body name="B16_17"/>
-        <body name="B16_18"/>
-        <body name="B16_19"/>
-
-        <body name="B17_0"/>
-        <body name="B17_1"/>
-        <body name="B17_2"/>
-        <body name="B17_3"/>
-        <body name="B17_4"/>
-        <body name="B17_5"/>
-        <body name="B17_6"/>
-        <body name="B17_7"/>
-        <body name="B17_8"/>
-        <body name="B17_9"/>
-        <body name="B17_10"/>
-        <body name="B17_11"/>
-        <body name="B17_12"/>
-        <body name="B17_13"/>
-        <body name="B17_14"/>
-        <body name="B17_15"/>
-        <body name="B17_16"/>
-        <body name="B17_17"/>
-        <body name="B17_18"/>
-        <body name="B17_19"/>
-
-        <body name="B18_0"/>
-        <body name="B18_1"/>
-        <body name="B18_2"/>
-        <body name="B18_3"/>
-        <body name="B18_4"/>
-        <body name="B18_5"/>
-        <body name="B18_6"/>
-        <body name="B18_7"/>
-        <body name="B18_8"/>
-        <body name="B18_9"/>
-        <body name="B18_10"/>
-        <body name="B18_11"/>
-        <body name="B18_12"/>
-        <body name="B18_13"/>
-        <body name="B18_14"/>
-        <body name="B18_15"/>
-        <body name="B18_16"/>
-        <body name="B18_17"/>
-        <body name="B18_18"/>
-        <body name="B18_19"/>
-
-        <body name="B19_0"/>
-        <body name="B19_1"/>
-        <body name="B19_2"/>
-        <body name="B19_3"/>
-        <body name="B19_4"/>
-        <body name="B19_5"/>
-        <body name="B19_6"/>
-        <body name="B19_7"/>
-        <body name="B19_8"/>
-        <body name="B19_9"/>
-        <body name="B19_10"/>
-        <body name="B19_11"/>
-        <body name="B19_12"/>
-        <body name="B19_13"/>
-        <body name="B19_14"/>
-        <body name="B19_15"/>
-        <body name="B19_16"/>
-        <body name="B19_17"/>
-        <body name="B19_18"/>
-        <body name="B19_19"/> -->
-
-        
-
+    
 
     {% if lights_randomization %}
         {% for i in range(num_lights) %}
@@ -474,26 +126,12 @@
         {% endfor %}
     {% endif %}
 
-
-
-
-
-
-
-
-        <!-- front view -->
-        <!--바꾼부분: 카메라 (0908)-->
-        <!-- <camera mode="fixed" name="frontview" pos="0.35 -0.1 0.25" quat="0.56 0.43 0.43 0.56"/> -->
         <camera mode="fixed" name="frontview" pos="2.0 0.25  2.0" quat="1 0 0 0"/>
 
         <camera fovy="{{train_camera_fovy}}" mode="targetbody" target="lookatbody" name="up" pos="0.5 -0.7  1.1"/>
         <camera fovy="{{train_camera_fovy}}" mode="targetbody" target="lookatbody" name="side" pos="-0.4 -0.7  0.65"/> 
-        <!--바꾼부분: 카메라 (0908)-->
-        <!-- <camera fovy="{{train_camera_fovy}}" mode="targetbody" target="lookatbody" name="front" pos="0.5 -1.0  0.75"/>  -->
         <camera fovy="60" mode="targetbody" target="lookatbody" name="front" pos="2.0 0.25  2.0" quat="1 0 0 0"/> 
 
-        <!--바꾼부분: 카메라 (0908)-->
-        <!-- <camera mode="targetbodycom" target="tabletop" name="eval_camera" pos="-0.45 -1 1"/> -->
         <camera mode="targetbodycom" target="tabletop" name="eval_camera" pos="2.0 0.25  2.0"/>
 
         <!--cloth view -->
@@ -508,14 +146,8 @@
         <camera name="sideview" pos="0.1 0.2 0.3" quat="0.2 0 0.5 0.75" />
         <camera mode="fixed" name="eye_in_hand" pos="0.05 0 0" quat="0 0.707108 0.707108 0" fovy="75"/>
 
-        <!--바꾼부분: 양팔 (0828)-->
-        <!--1st 단순 arm-->
-        <!--바꾼부분: 카메라 (1007) -->
-        <!--body name="base_2" pos="0.0 0.5 0"-->  <!-- 바꾼부분: 모션플래닝 (0903): 0.0 0.5 0-->  <!-- 원래: 0.5 0.5 0-->
         <body name="base_2" pos="0.0 0.5 0"> 
-            <!--바꾼부분: 카메라 (0908)-->
             <camera name="robotview_2" pos="1 0 0.4" quat="0.653 0.271 0.271 0.653"/>
-            <!-- <camera name="robotview_2" pos="2.0 0.25  2.0" quat="1 0 0 0"/> -->
             <body name="link0_2" pos="0 0 0">
                 <geom name="link0_visual_2" type="mesh" contype="0" conaffinity="0" group="1" rgba="1 1 1 1" mesh="link0_vis"/>
                 <geom name="link0_collision_2" type="mesh" rgba="0 0.5 0 1" mesh="link0"/>
@@ -562,7 +194,6 @@
                                                     <geom name="hand_collision_2" quat="0.707107 0 0 0.707107" type="mesh" rgba="0 0 0.5 1" mesh="hand"/>
                                                     <geom name="grip_geom_2" size="0.0025" pos="0 0 0.16" group="0" contype="0" conaffinity="0" rgba="1 0 0 0.5"/>
                                                     <site name="ft_frame_2" pos="0 0 0" size="0.01" group="1" rgba="1 0 0 1"/>
-                                                    <!--바꾼부분: grasp (0903) -->
                                                     <site name="grip_site_2" pos="0 0 0.17" size="0.0025" group="1" rgba="1 0 0 1"/> <!--pos="0 0 0.10377" size="0.0025" group="1" rgba="1 0 0 0.5"-->
 
                                                     <body name="leftfinger_2" pos="0 0 0.063" quat="0.707107 0 0 0.707107">
@@ -583,11 +214,8 @@
             </body>
         </body>
         <!--2st policy arm-->
-        <!--바꾼부분: 모션플래닝 (0903) -->
         <body name="base" pos="0.0 -0.5 0">  <!--0903: 0.0 -0.5 0--> <!--0.5 -0.5 0-->
-        <!--바꾼부분: 카메라 (0908)-->
             <camera name="robotview" pos="1 0 0.4" quat="0.653 0.271 0.271 0.653"/>
-            <!-- <camera name="robotview" pos="2.0 0.25  2.0" quat="1 0 0 0"/> -->
             <body name="link0" pos="0 0 0">
                 <geom name="link0_visual" type="mesh" contype="0" conaffinity="0" group="1" rgba="1 1 1 1" mesh="link0_vis"/>
                 <geom name="link0_collision" type="mesh" rgba="0 0.5 0 1" mesh="link0"/>
@@ -632,10 +260,8 @@
                                                         <geom name="hand_visual" quat="0.707107 0 0 0.707107" type="mesh" contype="0" conaffinity="0" group="1" rgba="1 1 1 1" mesh="hand_vis"/>
                                                     {% endif %}
                                                     <geom name="hand_collision" quat="0.707107 0 0 0.707107" type="mesh" rgba="0 0 0.5 1" mesh="hand"/>
-                                                    <!--바꾼부분: grasp (0922)   pos="0 0 0.16" -->
                                                     <geom name="grip_geom" size="0.0025" pos="0 0 0.16" group="0" contype="0" conaffinity="0" rgba="1 0 0 0.5"/>
                                                     <site name="ft_frame" pos="0 0 0" size="0.01" group="1" rgba="1 0 0 1"/>
-                                                    <!--바꾼부분: grasp (0922)-->
                                                     <site name="grip_site" pos="0 0 0.17" size="0.0025" group="1" rgba="1 0 0 1"/> <!--0.17--><!--pos="0 0 0.10377" size="0.0025" group="1" rgba="1 0 0 0.5"-->
 
                                                     <body name="leftfinger" pos="0 0 0.063" quat="0.707107 0 0 0.707107">
@@ -656,11 +282,6 @@
             </body>
         </body>
 
-        <!--바꾼부분-->
-        <!-- <body mocap="true" name="robot0:mocap" pos="0.00078214 -0.0042735   0.20663855"> -->
-            <!-- <geom group="1" name="mocap" conaffinity="0" contype="0" pos="0  0  0" rgba="0 0 1 1" size="0.005 0.005 0.005" type="box"></geom> -->
-        <!-- </body> -->
-
     </worldbody>
 
     <actuator>
@@ -673,7 +294,6 @@
         <motor joint="joint6" name="torq_j6"/>
         <motor joint="joint7" name="torq_j7"/>
     </actuator>
-    <!--바꾼부분: 양팔 (0903) -->
     <actuator>
         <motor joint="joint1_2" name="torq_j1_2"/>
         <motor joint="joint2_2" name="torq_j2_2"/>
@@ -685,11 +305,6 @@
     </actuator>
 
     <equality>
-            <!--바꾼부분-->
-            <!--geom1, geom2 사이의 거리를 distance로 설정-->
-            <!-- <distance distance="0.01" solimp="{{grasp_solimp_low}} {{grasp_solimp_high}} {{grasp_solimp_width}}" solref="{{grasp_solref_timeconst}} {{grasp_solref_dampratio}}" geom1="G8_8" geom2="grip_geom" /> -->
-            <!-- <distance distance="0.01" solref="0.1 0.1" geom1="G8_8" geom2="mocap" /> -->
-            <!-- <distance distance="0.01" solref="-10000 -0.1" geom1="G8_8" geom2="mocap" /> -->
 
     </equality>
 

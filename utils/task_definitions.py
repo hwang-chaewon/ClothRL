@@ -1,11 +1,6 @@
 import numpy as np
 
 constraints = dict(
-                    #*****************바꾼부분*******************#
-                    # random_cloth = lambda min, mid, max, dist, origin_x,origin_y: [
-                    #                     dict(origin=f"S{origin_x}_{origin_y}", target=f"S{x}_{y}", distance=dist) for x in range(max + 1) for y in range(max + 1)
-                    #                     ],
-                    #***************바꾼부분: 모션플래닝**************
                     random_cloth = lambda min, mid, max, dist, origin_x,origin_y: [
                                         dict(origin=f"S{origin_x}_{origin_y}", 
                                              target=f"S{x}_{y}", 

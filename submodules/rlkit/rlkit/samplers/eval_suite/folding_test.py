@@ -1,4 +1,3 @@
-#***********바꾼부분**********************#
 from pandas.core import frame
 from rlkit.samplers.eval_suite.eval_suite import EvalTest
 import numpy as np
@@ -13,7 +12,6 @@ class FoldingTest(EvalTest):
 
     def single_evaluation(self, eval_number: int) -> dict:
         print("Folding eval", eval_number)
-        #**************바꾼부분**************************#
         create_area_image_directories(self.base_save_folder, self.epoch)
         image_dirs = ["up", "side", "front"]
 
@@ -28,10 +26,6 @@ class FoldingTest(EvalTest):
 
             for i, image_dir in enumerate(os.listdir(images_dir)):
                 image_dir_path = os.path.join(images_dir, image_dir)
-
-                # labels.csv 파일을 열고, 열 이름을 "corner", "u", "v", "file", "w", "h" 로 지정
-                # /home/hcw/DualRL/submodules/rlkit/rlkit/samplers/eval_suite/images/up/0/labels.csv
-                # 이 csv를 내 task에 맞게 생성하려면 data_collector를 이용해서 data를 생성해야 하나
                 labels = pd.read_csv(
                     f"{image_dir_path}/labels.csv", names=["corner", "u", "v", "file", "w", "h"])
                 off_directory = 0

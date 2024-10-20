@@ -6,14 +6,6 @@ class ReplayBuffer(object, metaclass=abc.ABCMeta):
     A class used to save and replay data.
     """
 
-    #****************바꾼부분*********************#
-    # @abc.abstractmethod
-    # def add_sample(self, observation, action, reward, next_observation,
-    #                terminal, **kwargs):
-    #     """
-    #     Add a transition tuple.
-    #     """
-    #     pass
     @abc.abstractmethod
     def add_sample(self, observation, action, reward, next_observation,
                    terminal, camera_matrix, image_reward, **kwargs):
@@ -58,8 +50,6 @@ class ReplayBuffer(object, metaclass=abc.ABCMeta):
                 terminal,
                 agent_info,
                 env_info,
-
-                #************바꾼부분********#
                 camera_matrix,
                 image_reward
 
@@ -71,8 +61,6 @@ class ReplayBuffer(object, metaclass=abc.ABCMeta):
             path["terminals"],
             path["agent_infos"],
             path["env_infos"],
-
-            #************바꾼부분********#
             path['camera_matrix'],
             path['image_reward'],
         )):
@@ -84,8 +72,6 @@ class ReplayBuffer(object, metaclass=abc.ABCMeta):
                 terminal=terminal,
                 agent_info=agent_info,
                 env_info=env_info,
-
-                #************바꾼부분********#
                 camera_matrix=camera_matrix,
                 image=image_reward,
                 

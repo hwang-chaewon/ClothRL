@@ -146,6 +146,5 @@ if __name__ == "__main__":
         sim.data.qfrc_applied[_ref_joint_vel_indexes] = sim.data.qfrc_bias[
             _ref_joint_vel_indexes
         ]
-        #********바꾼부분*******************
         viewer.render()
         step += 1
