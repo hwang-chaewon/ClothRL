@@ -1,0 +1,16 @@
+*/*/mjkey.txt
+**/.DS_STORE
+**/*.pyc
+**/*.swp
+rlkit/launchers/config.py
+rlkit/launchers/conf_private.py
+MANIFEST
+*.egg-info
+\.idea/
+.ipynb_checkpoints/visualize-checkpoint.ipynb
+data
+.vscode
+runs
+examples
+generate
+experiments

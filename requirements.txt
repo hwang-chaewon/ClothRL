@@ -1,0 +1,12 @@
+torch
+torchvision
+python-dateutil
+opencv-python==4.6.0.66
+mujoco-py<2.2,>=2.1
+GitPython
+Jinja2
+psutil
+albumentations
+pandas==1.4.3
+gtimer
+tensorboard==2.9.1
