@@ -1,7 +1,9 @@
 # Cloth Manipulation Using Deep RL for a Dual Robot Arm
 
 ## Introduction
-This repository contains codes on 'Cloth Manipulation Using Deep RL for a Dual Robot Arm' project, which conducts cloth unfolding task using SAC and HER algorithm using two Franka Fanda robot arm.
+This repository contains code for the Cloth Manipulation Using Deep Reinforcement Learning project, which performs a cloth unfolding task using SAC (Soft Actor-Critic) and HER (Hindsight Experience Replay) algorithms with two Franka Emika Panda robot arms.  
+
+The environment setup uses the MuJoCo physics engine and OpenAI Gym on Ubuntu 20.04 or 22.04.
 
 ## Cloth Unfolding Task
 <img src="https://github.com/user-attachments/assets/cd4539b4-591f-449b-a7f1-885daa4eba16" width="500" height="300">
