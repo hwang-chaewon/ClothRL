@@ -81,6 +81,7 @@ class ClothEnv_(object):
         self.num_cloth=9 # 9     #<composite type="grid" count="num num 1"  
 
         self.action=None
+        self.R = None
 
         self.albumentations_transform = A.Compose(
             [
@@ -138,7 +139,7 @@ class ClothEnv_(object):
         self.substeps = 1 / (self.timestep*self.control_frequency)
         self.between_steps = 1000 / steps_per_second
         self.delta_tau_max = 1000 / steps_per_second
-
+*
         self.eval_camera = "front"
 
         self.episode_ee_close_steps = 0
@@ -170,10 +171,13 @@ class ClothEnv_(object):
 
         self.build_motion_distance_and_constraints()
 
-        self.a2_index=random.choice([0, 8, 72, 80])
-        cloth_2=list(self.get_cloth_position_W().items())[self.a2_index]
-        self.grasp_cloth_2=cloth_2[0]
-        self.action_2 = cloth_2[1] 
+
+        for index, d in enumerate(list(self.get_cloth_position_W().items())): #B0_0과, 그에 해당하는 value
+                if self.singlemocap in d[0]: #B0_0형태
+                    self.a2_index=index
+        for index, d in enumerate(list(self.get_cloth_position_W().items())): #B0_0과, 그에 해당하는 value
+                if self.policymocap in d[0]: #B0_0형태
+                    self.a_index=index
 
         self.action_space = gym.spaces.Box(-1,1, shape=(3,), dtype='float32')
 
@@ -205,258 +209,57 @@ class ClothEnv_(object):
                                  shape=obs['image'].shape, dtype='float32')
         ))
 
-        self.leftfinger_id=self.sim.model.body_name2id('leftfinger')
-        self.rightfinger_id=self.sim.model.body_name2id('rightfinger')
-        self.grip_geom_id=self.sim.model.geom_name2id('grip_geom')
-
-        self.leftfinger_id_2=self.sim.model.body_name2id('leftfinger_2')
-        self.rightfinger_id_2=self.sim.model.body_name2id('rightfinger_2')
-        self.grip_geom_id_2=self.sim.model.geom_name2id('grip_geom_2')
-
-        self.create_lists()
-        self.groups = defaultdict(list)
-        self.groups["All"] = list(range(7)) #len(self.sim.data.ctrl)
-        self.create_group("Gripper", [0])
-        self.actuated_joint_ids = np.array([i[2] for i in self.actuators])
-        self.reached_target = False
-        self.current_output = np.zeros(7)  #len(self.sim.data.ctrl)
-
-        self.create_lists_2()
-        self.groups_2 = defaultdict(list)
-        self.groups_2["All"] = list(range(7))
-        self.create_group_2("Gripper_2", [0])
-        self.actuated_joint_ids_2 = np.array([i[2] for i in self.actuators_2])
-        self.reached_target_2 = False
-        self.current_output_2 = np.zeros(7)  #len(self.sim.data.ctrl)
-
-        cv2.imwrite('/home/hcw/DualRL/data/saved_image.png', initial_image)
-
-    def create_group(self, group_name, idx_list):
-        try:
-            assert len(idx_list) <= len(self.sim.data.ctrl), "Too many joints specified!"
-            assert (group_name not in self.groups.keys()), "A group with name {} already exists!".format(group_name)
-            # assert np.max(idx_list) <= len(self.sim.data.ctrl), "List contains invalid actuator ID (too high)"
-            self.groups[group_name] = idx_list
-            print("Created new control group '{}'.".format(group_name))
-        except Exception as e:
-            print(e)
-            print("Could not create a new group.")
-    def create_group_2(self, group_name, idx_list):
-        try:
-            assert len(idx_list) <= 7, "Too many joints specified!"
-            assert (group_name not in self.groups_2.keys()), "A group with name {} already exists!".format(group_name)
-            # assert np.max(idx_list) <= len(self.sim.data.ctrl), "List contains invalid actuator ID (too high)"
-            self.groups_2[group_name] = idx_list
-            print("Created new control group '{}'.".format(group_name))
-        except Exception as e:
-            print(e)
-            print("Could not create a new group.")
-
-    def create_lists(self):
-        self.controller_list = []
-        sample_time = 0.0001
-        p_scale = 3
-        i_scale = 0.0
-        i_gripper = 0
-        d_scale = 0.1
-        self.controller_list.append(  # (1) Shoulder Pan Joint
-            PID(7 * p_scale,0.0 * i_scale,1.1 * d_scale,setpoint=0,output_limits=(-2, 2),sample_time=sample_time,))
-        self.controller_list.append(  # (2) Shoulder Lift Joint
-            PID(10 * p_scale,0.0 * i_scale,1.0 * d_scale,setpoint=-1.57,output_limits=(-2, 2),sample_time=sample_time,))
-        self.controller_list.append( # (3) Elbow Joint
-            PID(5 * p_scale,0.0 * i_scale,0.5 * d_scale,setpoint=1.57,output_limits=(-2, 2),sample_time=sample_time,))
-        self.controller_list.append( # (내가추가) (3.5) Elbow2 Joint
-            PID(5 * p_scale,0.0 * i_scale,0.5 * d_scale,setpoint=1.57,output_limits=(-2, 2),sample_time=sample_time,))
-        self.controller_list.append( # (4) Wrist 1 Joint
-            PID(7 * p_scale,0.0 * i_scale,0.1 * d_scale,setpoint=-1.57,output_limits=(-1, 1),sample_time=sample_time,)) 
-        self.controller_list.append( # (5) Wrist 2 Joint
-            PID(5 * p_scale,0.0 * i_scale,0.1 * d_scale,setpoint=-1.57,output_limits=(-1, 1),sample_time=sample_time,))
-        self.controller_list.append( # (6) Wrist 3 Joint
-            PID(5 * p_scale,0.0 * i_scale,0.1 * d_scale,setpoint=0.0,output_limits=(-1, 1),sample_time=sample_time,))
-        self.controller_list.append(  # (7) Gripper Joint
-            PID(2.5 * p_scale,i_gripper,0.00 * d_scale,setpoint=0.0,output_limits=(-1, 1),sample_time=sample_time,))
-        self.current_target_joint_values = [
-            self.controller_list[i].setpoint for i in range(7)   #len(self.sim.data.ctrl)
-        ]
-        self.current_target_joint_values = np.array(self.current_target_joint_values)
-        self.current_output = [controller(0) for controller in self.controller_list]
-        self.actuators = []
-        for i in range(7):   #len(self.sim.data.ctrl)
-            item = [i, self.sim.model.actuator_id2name(i)]
-            item.append(self.sim.model.actuator_trnid[i][0])
-            item.append(self.sim.model.joint_id2name(self.sim.model.actuator_trnid[i][0]))
-            item.append(self.controller_list[i])
-            self.actuators.append(item)
-    def create_lists_2(self):
-        self.controller_list_2 = []
-        sample_time = 0.0001
-        p_scale = 3
-        i_scale = 0.0
-        i_gripper = 0
-        d_scale = 0.1
-        self.controller_list_2.append(  # (1) Shoulder Pan Joint
-            PID(7 * p_scale,0.0 * i_scale,1.1 * d_scale,setpoint=0,output_limits=(-2, 2),sample_time=sample_time,))
-        self.controller_list_2.append(  # (2) Shoulder Lift Joint
-            PID(10 * p_scale,0.0 * i_scale,1.0 * d_scale,setpoint=-1.57,output_limits=(-2, 2),sample_time=sample_time,))
-        self.controller_list_2.append( # (3) Elbow Joint
-            PID(5 * p_scale,0.0 * i_scale,0.5 * d_scale,setpoint=1.57,output_limits=(-2, 2),sample_time=sample_time,))
-        self.controller_list_2.append( # (내가추가) (3.5) Elbow2 Joint
-            PID(5 * p_scale,0.0 * i_scale,0.5 * d_scale,setpoint=1.57,output_limits=(-2, 2),sample_time=sample_time,))
-        self.controller_list_2.append( # (4) Wrist 1 Joint
-            PID(7 * p_scale,0.0 * i_scale,0.1 * d_scale,setpoint=-1.57,output_limits=(-1, 1),sample_time=sample_time,)) 
-        self.controller_list_2.append( # (5) Wrist 2 Joint
-            PID(5 * p_scale,0.0 * i_scale,0.1 * d_scale,setpoint=-1.57,output_limits=(-1, 1),sample_time=sample_time,))
-        self.controller_list_2.append( # (6) Wrist 3 Joint
-            PID(5 * p_scale,0.0 * i_scale,0.1 * d_scale,setpoint=0.0,output_limits=(-1, 1),sample_time=sample_time,))
-        self.controller_list_2.append(  # (7) Gripper Joint
-            PID(2.5 * p_scale,i_gripper,0.00 * d_scale,setpoint=0.0,output_limits=(-1, 1),sample_time=sample_time,))
-        self.current_target_joint_values_2 = [
-            self.controller_list_2[i].setpoint for i in range(7)
-        ]
-        self.current_target_joint_values_2 = np.array(self.current_target_joint_values_2)
-        self.current_output_2 = [controller(0) for controller in self.controller_list_2]
-        self.actuators_2 = []
-        for i in range(7, len(self.sim.data.ctrl)):
-            item = [i, self.sim.model.actuator_id2name(i)]
-            item.append(self.sim.model.actuator_trnid[i][0])
-            item.append(self.sim.model.joint_id2name(self.sim.model.actuator_trnid[i][0]))
-            item.append(self.controller_list_2[i-7])
-            self.actuators_2.append(item)
-
-    def move_group_to_joint_target(
-        self,
-        group="All",
-        target=None,
-        tolerance=0.1,
-        max_steps=10000,
-        marker=False,
-        render=True,
-        quiet=False,
-    ):
-        try:
-            assert group in self.groups.keys(), "No group with name {} exists!".format(group)
-            if target is not None:
-                assert len(target) == len(self.groups[group]), "Mismatching target dimensions for group {}!".format(group)
-            ids = self.groups[group]
-            steps = 1
-            result = ""
-            self.reached_target = False
-            deltas = np.zeros(7)
-            if target is not None:
-                for i, v in enumerate(ids):
-                    self.current_target_joint_values[v] = target[i]  #이제부터 cur_target_joint_val은 그냥 target임!
-            for j in range(7):
-                self.actuators[j][4].setpoint = self.current_target_joint_values[j]
-
-            while not self.reached_target:
-                current_joint_values = self.sim.data.qpos[self.actuated_joint_ids]
-                # self.get_image_data(width=200, height=200, show=True)
-                for j in range(7):
-                    self.current_output[j] = self.actuators[j][4](current_joint_values[j])
-                    self.sim.data.ctrl[j] = self.current_output[j]
-                for i in ids: 
-                    deltas[i] = abs(self.current_target_joint_values[i] - current_joint_values[i])
-                if steps % 1000 == 0 and target is not None and not quiet:
-                    print("Moving group {} to joint target! Max. delta: {}, Joint: {}".format(
-                            group, max(deltas), self.actuators[np.argmax(deltas)][3]))
-                if max(deltas) < tolerance:
-                    if target is not None and not quiet:
-                        print(colored("Joint values for group {} within requested tolerance! ({} steps)".format(
-                                    group, steps),color="green",attrs=["bold"],))
-                    result = "success"
-                    self.reached_target = True
-                    # break
-                if steps > max_steps:
-                    if not quiet:
-                        print(colored("Max number of steps reached: {}".format(max_steps),color="red",attrs=["bold"],))
-                        print("Deltas: ", deltas)
-                    result = "max. steps reached: {}".format(max_steps)
-                    break
-                self.sim.step()
-                if render:
-                    camera_id = self.sim.model.camera_name2id(self.train_camera)
-                    width = self.randomization_kwargs['camera_config']['width']
-                    height = self.randomization_kwargs['camera_config']['height']
-                steps += 1
-            self.last_movement_steps = steps
-            return result
-        except Exception as e:
-            print(e)
-            print("Could not move to requested joint target.")
-    def move_group_to_joint_target_2(
-        self,
-        group="All",
-        target=None,
-        tolerance=0.1,
-        max_steps=10000,
-        marker=False,
-        render=True,
-        quiet=False,
-    ):
-        try:
-            assert group in self.groups_2.keys(), "No group with name {} exists!".format(group)
-            if target is not None:
-                assert len(target) == len(self.groups_2[group]), "Mismatching target dimensions for group {}!".format(group)
-            ids = self.groups_2[group]
-            steps = 1
-            result = ""
-            self.reached_target_2 = False
-            deltas = np.zeros(7)
-            if target is not None:
-                for i, v in enumerate(ids):
-                    self.current_target_joint_values_2[v] = target[i]  #이제부터 cur_target_joint_val은 그냥 target임!
-            for j in range(7):
-                self.actuators_2[j][4].setpoint = self.current_target_joint_values_2[j]
-
-            while not self.reached_target:
-                current_joint_values_2 = self.sim.data.qpos[self.actuated_joint_ids_2]
-                for j in range(7):
-                    self.current_output_2[j] = self.actuators_2[j][4](current_joint_values_2[j])
-                    self.sim.data.ctrl[j+7] = self.current_output_2[j]
-                for i in ids: 
-                    deltas[i] = abs(self.current_target_joint_values_2[i] - current_joint_values_2[i])
-                if steps % 1000 == 0 and target is not None and not quiet:
-                    print("Moving group {} to joint target! Max. delta: {}, Joint: {}".format(
-                            group, max(deltas), self.actuators_2[np.argmax(deltas)][3]))
-                if max(deltas) < tolerance:
-                    if target is not None and not quiet:
-                        print(colored("Joint values for group {} within requested tolerance! ({} steps)".format(
-                                    group, steps),color="green",attrs=["bold"],))
-                    result = "success"
-                    self.reached_target_2 = True
-                    # break
-                if steps > max_steps:
-                    if not quiet:
-                        print(colored("Max number of steps reached: {}".format(max_steps),color="red",attrs=["bold"],))
-                        print("Deltas: ", deltas)
-                    result = "max. steps reached: {}".format(max_steps)
-                    break
-                self.sim.step()
-                steps += 1
-            self.last_movement_steps = steps
-            return result
-        except Exception as e:
-            print(e)
-            print("Could not move to requested joint target.")
-
-    def open_gripper(self, **kwargs):
-        self.sim.model.body_pos[self.rightfinger_id]=(-0.1, 0, 0.063)
-        self.sim.model.body_pos[self.leftfinger_id]=(0.1, 0, 0.063)
-        return self.move_group_to_joint_target(group="Gripper", target=[0.2], max_steps=1000, tolerance=0.05, **kwargs)
-    def close_gripper(self, **kwargs):
-        self.sim.model.body_pos[self.rightfinger_id]=(0, 0, 0.063)
-        self.sim.model.body_pos[self.leftfinger_id]=(0, 0, 0.063)
-        return self.move_group_to_joint_target(group="Gripper", target=[-0.4], tolerance=0.01, **kwargs)
+    def quat_2_rotmat(self,Q):
+        q0 = Q[0]
+        q1 = Q[1]
+        q2 = Q[2]
+        q3 = Q[3]
+        r00 = 2 * (q0 * q0 + q1 * q1) - 1
+        r01 = 2 * (q1 * q2 - q0 * q3)
+        r02 = 2 * (q1 * q3 + q0 * q2)
+        r10 = 2 * (q1 * q2 + q0 * q3)
+        r11 = 2 * (q0 * q0 + q2 * q2) - 1
+        r12 = 2 * (q2 * q3 - q0 * q1)
+        r20 = 2 * (q1 * q3 - q0 * q2)
+        r21 = 2 * (q2 * q3 + q0 * q1)
+        r22 = 2 * (q0 * q0 + q3 * q3) - 1
+        rot_matrix = np.array([[r00, r01, r02],
+                            [r10, r11, r12],
+                            [r20, r21, r22]])    
+        return rot_matrix
+    def euler_2_rotmat(self, roll, pitch, yaw):
+        Rx = np.array([
+            [1, 0, 0],
+            [0, np.cos(roll), -np.sin(roll)],
+            [0, np.sin(roll), np.cos(roll)]
+        ])
+        Ry = np.array([
+            [np.cos(pitch), 0, np.sin(pitch)],
+            [0, 1, 0],
+            [-np.sin(pitch), 0, np.cos(pitch)]
+        ])
+        Rz = np.array([
+            [np.cos(yaw), -np.sin(yaw), 0],
+            [np.sin(yaw), np.cos(yaw), 0],
+            [0, 0, 1]
+        ])
+        R = Rz @ Ry @ Rx
+        return R
+    def quaternion_to_euler(self,q):
+        w, x, y, z = q
+        sinr_cosp = 2 * (w * x + y * z)
+        cosr_cosp = 1 - 2 * (x * x + y * y)
+        roll = np.arctan2(sinr_cosp, cosr_cosp)
+        sinp = 2 * (w * y - z * x)
+        if np.abs(sinp) >= 1:
+            pitch = np.sign(sinp) * (np.pi / 2)  # Use 90 degrees if out of range
+        else:
+            pitch = np.arcsin(sinp)
+        siny_cosp = 2 * (w * z + x * y)
+        cosy_cosp = 1 - 2 * (y * y + z * z)
+        yaw = np.arctan2(siny_cosp, cosy_cosp)
+        return roll, pitch, yaw    
     
-    def open_gripper_2(self, **kwargs):
-        self.sim.model.body_pos[self.rightfinger_id_2]=(-0.1, 0, 0.063)
-        self.sim.model.body_pos[self.leftfinger_id_2]=(0.1, 0, 0.063)
-        return self.move_group_to_joint_target_2(group="Gripper_2", target=[0.2], max_steps=1000, tolerance=0.05, **kwargs)
-    def close_gripper_2(self, **kwargs):
-        self.sim.model.body_pos[self.rightfinger_id_2]=(0, 0, 0.063)
-        self.sim.model.body_pos[self.leftfinger_id_2]=(0, 0, 0.063)
-        return self.move_group_to_joint_target_2(group="Gripper_2", target=[-0.4], tolerance=0.01, **kwargs)
-
     def get_model_kwargs(self, randomize, rownum=None):
         df = pd.read_csv(self.model_kwargs_path)  # data/model_param.csv
 
@@ -486,16 +289,9 @@ class ClothEnv_(object):
 
         model_kwargs['floor_material_name'] = "floor_real_material"
         model_kwargs['table_material_name'] = "table_real_material"
-        model_kwargs['cloth_material_name'] = "black_real_material"
 
-        if self.randomization_kwargs['materials_randomization']:
-            model_kwargs['floor_material_name'] = np.random.choice(
-                ["floor_real_material", "floor_material"])
-            model_kwargs['table_material_name'] = np.random.choice(
-                ["table_real_material", "table_material"])
-            model_kwargs['cloth_material_name'] = "black_real_material"
+        model_kwargs['cloth_material_name'] = "wipe_real_material"
 
-        # General
         model_kwargs['timestep'] = self.timestep
         model_kwargs['lights_randomization'] = self.randomization_kwargs['lights_randomization']
         model_kwargs['materials_randomization'] = self.randomization_kwargs['materials_randomization']
@@ -506,14 +302,13 @@ class ClothEnv_(object):
         model_kwargs['geom_spacing'] = (self.randomization_kwargs['cloth_size'] - 2*model_kwargs['geom_size']) / (self.num_cloth-1)
         model_kwargs['offset'] = (self.num_cloth-1)/2 * model_kwargs['geom_spacing']
 
-        # Appearance
         appearance_choices = mujoco_model_kwargs.appearance_kwarg_choices
         appearance_ranges = mujoco_model_kwargs.appearance_kwarg_ranges
         for key in appearance_choices.keys():
-            model_kwargs[key] = np.random.choice(appearance_choices[key])
+            model_kwargs[key] = appearance_choices[key][1]
         for key in appearance_ranges.keys():
             values = appearance_ranges[key]
-            model_kwargs[key] = np.random.uniform(values[0], values[1])
+            model_kwargs[key] = values[1]
 
         # Camera fovy
         if self.randomization_kwargs['camera_position_randomization']:
@@ -535,6 +330,7 @@ class ClothEnv_(object):
         self.cloth_site_names = []
         for i in range(max_all+1):  #[min_all, mid_all, max_all]
             for j in range(max_all+1):   #[min_all, mid_all, max_all]
+                # self.cloth_site_names.append(f"S{i}_{j}")  #원래
                 self.cloth_site_names.append(f"B{i}_{j}") #0923
         
         self.task_reward_function = reward_calculation_unfolding.get_unfolding_reward_function()
@@ -595,6 +391,7 @@ class ClothEnv_(object):
     def add_mocap_to_xml(self, xml):
         dom = minidom.parseString(xml)
         for subelement in dom.getElementsByTagName("body"):
+
             if subelement.getAttribute("name").startswith('B'):
                 subelement.setAttribute("mocap", "true")
                 for child_node in subelement.childNodes:
@@ -636,8 +433,12 @@ class ClothEnv_(object):
         del temp_model
         del temp_xml_1
 
-        temp_xml_2 = self.add_new_mocap_to_xml(temp_xml_2, self.grasp_cloth_2, "true")
+        self.singlemocap="B0_8" **
+        self.policymocap="B1_1"
+        temp_xml_2 = self.add_new_mocap_to_xml(temp_xml_2, self.singlemocap, "true", self.policymocap, "true")
+
         self.mjpy_model = mujoco_py.load_model_from_xml(temp_xml_2)
+
         del temp_xml_2
 
         gc.collect()
@@ -657,7 +458,6 @@ class ClothEnv_(object):
         self.joint_vel_addr_2 = [self.sim.model.get_joint_qvel_addr(joint_2) for joint_2 in self.joints_2]
         self.ee_site_adr_2 = mujoco_py.functions.mj_name2id(self.sim.model, 6, "grip_site_2")
 
-        # Sets robot to initial qpos and resets osc values
         self.set_robot_initial_joints()
         self.reset_osc_values()
 
@@ -690,7 +490,6 @@ class ClothEnv_(object):
         self.sim = mujoco_py.MjSim(self.mjpy_model)
         self.setup_viewer()
 
-        #변수들 새롭게 설정
         body_id = self.sim.model.body_name2id(self.max_corner_name)
         self.ee_mocap_id = self.sim.model.body_mocapid[body_id]
         self.joint_indexes = [self.sim.model.joint_name2id(joint) for joint in self.joints]
@@ -785,17 +584,23 @@ class ClothEnv_(object):
         path = np.outer(1 - t, start) + np.outer(t, end)
         return path
     
-    def step_env(self, q_pos=None): 
+    def step_env(self, q_pos=None, action=None):
         mujoco_py.functions.mj_step1(self.sim.model, self.sim.data)
         if q_pos is not None:
-            self.update_osc_values(q_pos)
+            if action is not None:
+                self.update_osc_values(q_pos=q_pos, action=True)
+            else:
+                self.update_osc_values(q_pos=q_pos)
         else:
-            self.update_osc_values()
+            if action is not None:
+                self.update_osc_values(action=True)
+            else:
+                self.update_osc_values()
         tau = self.run_controller()
         self.sim.data.qfrc_applied[self.joint_vel_addr] = self.sim.data.qfrc_bias[self.joint_vel_addr] + tau
         mujoco_py.functions.mj_step2(self.sim.model, self.sim.data)
 
-    def step_env_2(self, q_pos=None):
+    def step_env_2(self, q_pos=None): 
         mujoco_py.functions.mj_step1(self.sim.model, self.sim.data)
         if q_pos is not None:
             self.update_osc_values_2(q_pos)
@@ -829,6 +634,27 @@ class ClothEnv_(object):
         new_qvel[e_idx:] = giver.qvel[s_idx:]
         new_state = mujoco_py.MjSimState(giver.time, new_qpos, new_qvel, giver.act, giver.udd_state)
         return new_state
+    
+    def get_surroundings(self, grasp_cloth):
+        first=int(grasp_cloth.split('_')[0][1:])
+        second=int(grasp_cloth.split('_')[1])
+        valid_range = range(0, self.num_cloth)
+        candidates = [
+            (first - 1, second),   # 왼쪽
+            (first + 1, second),   # 오른쪽
+            (first, second - 1),   # 아래쪽
+            (first, second + 1),   # 위쪽
+            (first - 1, second - 1), # 왼쪽 아래 대각선
+            (first - 1, second + 1), # 왼쪽 위 대각선
+            (first + 1, second - 1), # 오른쪽 아래 대각선
+            (first + 1, second + 1)  # 오른쪽 위 대각선
+        ]
+        return [f"B{f}_{s}" for f, s in candidates if f in valid_range and s in valid_range]
+    def get_avg_position(self, surrounding_cloths):
+        surrounding_positions = [
+            self.get_cloth_position_W()[cloth] for cloth in surrounding_cloths 
+        ]
+        return np.mean(surrounding_positions, axis=0)
 
     def step_2(self):
         camera_id = self.sim.model.camera_name2id(
@@ -836,15 +662,21 @@ class ClothEnv_(object):
         width = self.randomization_kwargs['camera_config']['width']
         height = self.randomization_kwargs['camera_config']['height']
 
-        body_id = self.sim.model.body_name2id(self.grasp_cloth_2)
+        body_id = self.sim.model.body_name2id(self.singlemocap) #0~110 숫자
+
         self.ee_mocap_id_2 = self.sim.model.body_mocapid[body_id]
 
         body_i = self.sim.model.body_name2id(self.policymocap)
         ee_mocap_id = self.sim.model.body_mocapid[body_i]
         sur=self.get_surroundings(self.policymocap)
 
-        goal_2=self.action_2.copy()
+        goal_2=list(self.get_cloth_position_W().items())[self.a2_index][1]
 
+        policy_pos = list(self.get_cloth_position_W().items())[self.a_index][1]
+        self.initial_dist= math.sqrt(sum((a - b) ** 2 for a, b in zip(goal_2, policy_pos)))
+
+        j_pos_1=self.get_joint_positions()
+        pos_1=self.get_ee_position_W()
         num_points=200
         trajectory_2=self.plan_trajectory(self.get_ee_position_W_2(), goal_2, num_points)
         for i in range(num_points):
@@ -855,27 +687,25 @@ class ClothEnv_(object):
             else:
                 self.viewer.render(width, height, camera_id)
         
-        self.sim.data.mocap_pos[self.ee_mocap_id_2][:] = self.sim.data.get_geom_xpos("grip_geom_2")
+        self.sim.data.mocap_pos[ee_mocap_id][:] = self.get_avg_position(sur)
         if self.glfw_window:
             self.viewer.render(self.sim)
         else:
             self.viewer.render(width, height, camera_id)
 
-        self.post_goal_2=(0.41, 0.12, 0.55) 
-        trajectory_2_2=self.plan_trajectory(self.get_ee_position_W_2(), self.post_goal_2, num_points)
+        trajectory_2_2=self.plan_trajectory(self.get_ee_position_W_2(), (0.41, 0.12, 0.55), num_points)
         for i in range(num_points):
             self.desired_pos_ctrl_W_2=trajectory_2_2[i]
             self.step_env_2()
             self.sim.data.mocap_pos[self.ee_mocap_id_2][:] = self.sim.data.get_geom_xpos("grip_geom_2")
+            self.sim.data.mocap_pos[ee_mocap_id][:] = self.get_avg_position(sur)
             if self.glfw_window:
                 self.viewer.render(self.sim)
             else:
                 self.viewer.render(width, height, camera_id)
-
-        state_1=self.sim.get_state()
-        point_pos=self.sim.data.mocap_pos[self.ee_mocap_id_2][:]
-        state_3=self.add_body_qposvel(state_0, state_1, startidx, endidx, point_pos)
-        self.update_sim_with_new_mocap(self.model_xml, state_3, self.grasp_cloth_2, "false")
+        
+        self.post_goal_2=self.get_ee_position_W_2()
+        self.last_single_joint = self.get_joint_positions_2()
 
         self.goal, self.goal_noise = self.sample_goal_I()
         obs = self.get_obs()
@@ -889,10 +719,9 @@ class ClothEnv_(object):
         num_points=200
 
         self.action=action.copy()
-
+        print("action: ", self.action)
         raw_action = action.copy()
         action = raw_action*self.output_max
-
         image_obs_substep_idx_mean = self.image_obs_noise_mean * \
             (self.substeps-1)
         image_obs_substep_idx = int(np.random.normal(
@@ -902,15 +731,15 @@ class ClothEnv_(object):
         cosine_distance = compute_cosine_distance(
             self.previous_raw_action, raw_action)
         self.previous_raw_action = raw_action
-        previous_desired_pos_step_W = self.desired_pos_step_W.copy()
-        desired_pos_step_W = previous_desired_pos_step_W + action
-        self.desired_pos_step_W = np.clip(desired_pos_step_W, self.min_absolute_W, self.max_absolute_W)
 
-        def pre_goal():  # collision에 의해 막히는 걸 방지하기 위해, ee를 위로 올린 상태로 만들기
-            goal_1=self.get_ee_position_W()+(-0.2,0,0.4)
+        def pre_goal(): 
+            goal_1=self.get_ee_position_W()+(0,0,0.3)
             trajectory_pre=self.plan_trajectory(self.get_ee_position_W(), goal_1, num_points)
             for i in range(num_points):
                 self.desired_pos_ctrl_W=trajectory_pre[i]
+
+                self.set_joint_positions_2(self.last_single_joint)
+
                 self.step_env()
                 if self.glfw_window:
                     self.viewer.render(self.sim)
@@ -918,14 +747,18 @@ class ClothEnv_(object):
                     self.viewer.render(width, height, camera_id)
             self.desired_pos_ctrl_W=goal_1
             self.step_env()
-        def goto_goal(goal, grip): # goal(action)로 가기
+        def goto_goal(goal, grip): 
             trajectory=self.plan_trajectory(self.get_ee_position_W(), goal, num_points)
             for i in range(num_points):
                 self.desired_pos_ctrl_W=trajectory[i]
-                self.step_env()
+                self.set_joint_positions_2(self.last_single_joint)
                 if i>=num_points-1:
                     if grip:
                         self.sim.data.mocap_pos[self.ee_mocap_id][:] = self.sim.data.get_geom_xpos("grip_geom")
+                    self.R=self.euler_2_rotmat(self.action[0],self.action[1],self.action[2])
+                    self.step_env(action=True)
+                else:
+                    self.step_env()
                 if self.glfw_window:
                     self.viewer.render(self.sim)
                 else:
@@ -933,54 +766,62 @@ class ClothEnv_(object):
             self.desired_pos_ctrl_W=goal
             self.step_env()
 
-        for idx, pos in enumerate(list(self.get_cloth_position_W().values())):
-            distance = np.linalg.norm(np.array(self.action) - np.array(pos))
-            if distance < 0.01:
-                action_in_cloth=idx
+        body_id = self.sim.model.body_name2id(self.policymocap) #0~110 숫자
+        self.ee_mocap_id = self.sim.model.body_mocapid[body_id]
+        
+        cloth_pos = list(self.get_cloth_position_W().items())[self.a_index][1]
+        goto_goal(cloth_pos, grip=True)
+
+        cloth_pos = list(self.get_cloth_position_W().items())[self.a_index][1]
+        trajectory=self.plan_trajectory(self.get_ee_position_W(), cloth_pos+(-0.05,-0.05,0.1), num_points)
+        for i in range(num_points):
+            self.desired_pos_ctrl_W=trajectory[i]
+            self.set_joint_positions_2(self.last_single_joint)
+
+            self.sim.data.mocap_pos[self.ee_mocap_id][:] = self.sim.data.get_geom_xpos("grip_geom")
+            self.step_env()
+            if self.glfw_window:
+                self.viewer.render(self.sim)
             else:
-                action_in_cloth=None
-        if action_in_cloth==None:
-            pre_goal()
-            goto_goal(self.action, grip=False)
-            print("FAIL")
-        else:
-            grasp_cloth=list(self.get_cloth_position_W().items())[action_in_cloth][0] #B0_0 형식
-            body_id = self.sim.model.body_name2id(grasp_cloth) #0~110 숫자
-            for d in enumerate(list(self.get_cloth_position_W().items())):
-                if self.policymocap in d[1][0]:
-                    cloth_pos = d[1][1]
-            state_0=self.sim.get_state()
-            state, startidx, endidx =self.remove_body_qposvel(state_0, body_id)
-            self.update_sim_with_new_mocap(self.model_xml, state, grasp_cloth, "true")
-            self.ee_mocap_id = self.sim.model.body_mocapid[body_id]
-            pre_goal()
-            cloth_pos = list(self.get_cloth_position_W().items())[self.a_index][1]
-            goto_goal(cloth_pos, grip=True) 
+                self.viewer.render(width, height, camera_id)
+            print("11")
+        
+        cloth_pos = list(self.get_cloth_position_W().items())[self.a_index][1]
+        trajectory=self.plan_trajectory(self.get_ee_position_W(), (self.post_goal_2[0], 0,self.post_goal_2[2]), num_points)
+        for i in range(num_points*2):
+            self.desired_pos_ctrl_W=trajectory[i]
+            self.set_joint_positions_2(self.last_single_joint)
+            self.step_env()
+            self.sim.data.mocap_pos[self.ee_mocap_id][:] = self.sim.data.get_geom_xpos("grip_geom")
+            if self.glfw_window:
+                self.viewer.render(self.sim)
+            else:
+                self.viewer.render(width, height, camera_id)
+            print("22")
+    
+        cloth_pos = list(self.get_cloth_position_W().items())[self.a_index][1]
+        trajectory=self.plan_trajectory(self.get_ee_position_W(), cloth_pos+(0,-1,0), num_points)
+        for i in range(num_points):
+            single_pos=list(self.get_cloth_position_W().items())[self.a2_index][1]
+            policy_pos = list(self.get_cloth_position_W().items())[self.a_index][1]
+            dist= math.sqrt(sum((a - b) ** 2 for a, b in zip(single_pos, policy_pos)))
+            if (dist >= self.initial_dist):
+                break
+            self.desired_pos_ctrl_W=trajectory[i]
+            self.set_joint_positions_2(self.last_single_joint)
 
-            cloth_pos = list(self.get_cloth_position_W().items())[self.a_index][1]
-            trajectory=self.plan_trajectory(self.get_ee_position_W(), cloth_pos+(0,-0.1,self.post_goal_2[-1]-cloth_pos[-1]), num_points)
-            for i in range(num_points):
-                self.desired_pos_ctrl_W=trajectory[i]
-                self.step_env()
-                self.sim.data.mocap_pos[self.ee_mocap_id][:] = self.sim.data.get_geom_xpos("grip_geom")
-                if self.glfw_window:
-                    self.viewer.render(self.sim)
-                else:
-                    self.viewer.render(width, height, camera_id)
-            cloth_pos = list(self.get_cloth_position_W().items())[self.a_index][1]
-
-            trajectory=self.plan_trajectory(self.get_ee_position_W(), cloth_pos+(0,-1.0,0.3), num_points)
-            for i in range(num_points):
-                self.desired_pos_ctrl_W=trajectory[i]
-                self.step_env()
-                self.sim.data.mocap_pos[self.ee_mocap_id][:] = self.sim.data.get_geom_xpos("grip_geom")
-                if self.glfw_window:
-                    self.viewer.render(self.sim)
-                else:
-                    self.viewer.render(width, height, camera_id)
+            self.step_env()
+            self.sim.data.mocap_pos[self.ee_mocap_id][:] = self.sim.data.get_geom_xpos("grip_geom")
+            if self.glfw_window:
+                self.viewer.render(self.sim)
+            else:
+                self.viewer.render(width, height, camera_id)
+            print("33")
+        
         obs = self.get_obs()
         reward, done, info = self.post_action(obs, raw_action, cosine_distance)
-        self.update_sim_with_new_mocap(self.model_xml, state, grasp_cloth, "false", last=True)
+
+        info['corner_positions'] = np.zeros((8))
 
         return obs, reward, done, info
 
@@ -1020,15 +861,13 @@ class ClothEnv_(object):
             self.train_camera, self.image_size[0], self.image_size[1])
         image_obs, image = self.get_image_obs()
         reward = self.compute_task_reward(image, camera_matrix)
-
         is_success = reward > self.fail_reward
 
         delta_size = np.linalg.norm(raw_action)
         ctrl_error = np.linalg.norm(self.desired_pos_ctrl_W - self.get_ee_position_W())
-        
+
         if np.any(is_success) and self.episode_ee_close_steps == 0: #if is_success and self.episode_ee_close_steps == 0:
             logger.debug(
-                # f"Successful fold, reward: {np.round(reward, decimals=3)}")
                 f"Successful fold")
 
         env_memory_usage = self.process.memory_info().rss
@@ -1056,7 +895,7 @@ class ClothEnv_(object):
             
         return reward, done, info
 
-    def update_osc_values(self, q_pos=None):
+    def update_osc_values(self, q_pos=None, action=None):
         self.joint_pos_osc = np.ndarray(shape=(7,), dtype=np.float64)
         self.joint_vel_osc = np.ndarray(shape=(7,), dtype=np.float64)
         self.O_T_EE = np.ndarray(shape=(16,), dtype=np.float64)
@@ -1069,8 +908,10 @@ class ClothEnv_(object):
 
         p = self.sim.data.site_xpos[self.ee_site_adr]
         
-        R = self.sim.data.site_xmat[self.ee_site_adr].reshape(
-            [3, 3]).T  # SAATANA
+        if action is None:
+            R = self.sim.data.site_xmat[self.ee_site_adr].reshape([3, 3]).T  # SAATANA
+        else:
+            R = self.R
 
         self.O_T_EE[0] = R[0, 0]
         self.O_T_EE[1] = R[0, 1]
@@ -1137,7 +978,7 @@ class ClothEnv_(object):
             self.min_absolute_W = self.initial_ee_p_W + self.limits_min
             self.max_absolute_W = self.initial_ee_p_W + self.limits_max
     
-    def update_osc_values_2(self, q_pos=None): 
+    def update_osc_values_2(self, q_pos=None):
         self.joint_pos_osc_2 = np.ndarray(shape=(7,), dtype=np.float64)
         self.joint_vel_osc_2 = np.ndarray(shape=(7,), dtype=np.float64)
         self.O_T_EE_2 = np.ndarray(shape=(16,), dtype=np.float64)
@@ -1146,9 +987,9 @@ class ClothEnv_(object):
         self.tau_J_d_osc_2 = self.sim.data.qfrc_applied[self.joint_vel_addr_2] - \
             self.sim.data.qfrc_bias[self.joint_vel_addr_2]
 
-        L = len(self.sim.data.qvel) 
+        L = len(self.sim.data.qvel)
 
-        p_2 = self.sim.data.site_xpos[self.ee_site_adr_2]  
+        p_2 = self.sim.data.site_xpos[self.ee_site_adr_2]
         R_2 = self.sim.data.site_xmat[self.ee_site_adr_2].reshape([3, 3]).T
         self.O_T_EE_2[0] = R_2[0, 0]
         self.O_T_EE_2[1] = R_2[0, 1]
@@ -1225,9 +1066,9 @@ class ClothEnv_(object):
         }
         return entry
 
-    def get_ee_position_W(self): #절대 위치. world position
+    def get_ee_position_W(self):
         return self.sim.data.get_site_xpos(self.ee_site_name).copy()
-    def get_ee_position_I(self): #상대 위치. 기준점으로부터 ee가 얼마나 떨어져 있는지
+    def get_ee_position_I(self):
         return self.sim.data.get_site_xpos(self.ee_site_name).copy() - self.relative_origin
     def get_joint_positions(self):
         positions = [self.sim.data.get_joint_qpos(
@@ -1245,9 +1086,9 @@ class ClothEnv_(object):
             positions[site] = self.sim.data.get_body_xpos(site).copy() - self.relative_origin
         return positions
 
-    def get_ee_position_W_2(self): #절대 위치. world position
+    def get_ee_position_W_2(self):
         return self.sim.data.get_site_xpos(self.ee_site_name_2).copy()
-    def get_ee_position_I_2(self): #상대 위치. 기준점으로부터 ee가 얼마나 떨어져 있는지
+    def get_ee_position_I_2(self):
         return self.sim.data.get_site_xpos(self.ee_site_name_2).copy() - self.relative_origin_2
     def get_joint_positions_2(self):
         positions = [self.sim.data.get_joint_qpos(joint).copy() for joint in self.joints_2]
@@ -1268,6 +1109,12 @@ class ClothEnv_(object):
         for site in self.cloth_site_names:
             positions[site] = self.sim.data.get_body_xpos(site).copy()
         return positions
+
+    def get_cloth_quat_W(self):
+        quats = dict()
+        for site in self.cloth_site_names:
+            quats[site] = self.sim.data.get_body_xquat(site).copy()
+        return quats
 
     def get_cloth_edge_positions_W(self):
         positions = dict()
@@ -1320,6 +1167,7 @@ class ClothEnv_(object):
     def get_obs(self):
         achieved_goal_I = np.zeros(self.single_goal_dim*len(self.constraints))
         for i, constraint in enumerate(self.constraints):
+            origin = constraint['origin']
             achieved_goal_I[i*self.single_goal_dim:(i+1)*self.single_goal_dim] = (0,0,0)
 
         cloth_position = np.array(list(self.get_cloth_position_I().values()))
@@ -1333,9 +1181,7 @@ class ClothEnv_(object):
         self.goal, self.goal_noise = self.sample_goal_I()
         full_observation = {'achieved_goal': achieved_goal_I.copy(), 'desired_goal': self.goal.copy()}
 
-        if self.robot_observation == "ee":
-            robot_observation = np.concatenate(
-                [self.get_ee_position_I(), self.get_ee_velocity(), desired_pos_ctrl_I])
+        if self.robot_observation == "ee": robot_observation = np.concatenate([self.get_ee_position_I(), self.get_ee_velocity(), desired_pos_ctrl_I])
         elif self.robot_observation == "ctrl":
             robot_observation = np.concatenate(
                 [self.previous_raw_action, np.zeros(6)])
@@ -1361,9 +1207,10 @@ class ClothEnv_(object):
         return [seed]
 
     def sample_goal_I(self):
-        goal = list(self.get_cloth_position_W().values())
+        goal_value = self.quaternion_to_euler(self.sim.model.site_quat[self.ee_site_adr])
+        goal = [goal_value for _ in self.get_cloth_quat_W().values()] # cloth_quat 개수만큼 반복
 
-        goal=np.concatenate(goal)
+        goal = np.concatenate(goal)
         noise = self.np_random.uniform(self.goal_noise_range[0],
                                        self.goal_noise_range[1])
         return goal.copy(), noise
@@ -1386,6 +1233,7 @@ class ClothEnv_(object):
         model_kwargs, model_numerical_values = self.build_xml_kwargs_and_numerical_values(
             randomize=randomize, rownum=rownum)
         self.mujoco_model_numerical_values = model_numerical_values
+
         self.model_xml=self.setup_initial_state_and_sim(model_kwargs)
 
     def reset(self):
@@ -1418,6 +1266,7 @@ class ClothEnv_(object):
             self.frame_stack.append(image_obs)
 
         q_ok = np.allclose(self.initial_qpos, self.get_joint_positions(), rtol=0.01, atol=0.01)
+
         q_ok_2 = np.allclose(self.initial_qpos_2, self.get_joint_positions(), rtol=0.01, atol=0.01)
 
         obs = self.step_2()
@@ -1442,8 +1291,8 @@ class ClothEnv_(object):
         edges = []
         cloth_edge_positions = self.get_cloth_edge_positions_W()
         for site in cloth_edge_positions.keys():
-            edge_in_image = np.ones(4) #homogeneous 좌표를 저장하는 [x,y,z,1] 형태
-            edge_in_image[:3] = cloth_edge_positions[site] # [x,y,z] 부분 채우기: 위에서 가져온 get_cloth_edge_position으로 정하기
+            edge_in_image = np.ones(4)
+            edge_in_image[:3] = cloth_edge_positions[site]
             edge = (camera_matrix @ camera_transformation) @ edge_in_image
             u_c, v_c, _ = edge/edge[2]
             edge = [w-u_c, v_c]
@@ -1492,7 +1341,6 @@ class ClothEnv_(object):
         data = np.float32(data)
         if greyscale:
             data = cv2.cvtColor(data, cv2.COLOR_BGR2GRAY)
-
         if mask_type == "corners":
             mask = self.get_corner_image_positions(
                 width, height, camera_matrix, camera_transformation)
@@ -1505,14 +1353,9 @@ class ClothEnv_(object):
         else:
             mask = []
 
-        for point in mask:
-            u = int(point[0])
-            v = int(point[1])
-            cv2.circle(data, (u, v), point_size, (255, 0, 0), -1)
-
         return data
     
-    def capture_images(self, aux_output=None, mask_type="alls"):  # "corners"
+    def capture_images(self, aux_output=None, mask_type=None): #alls # "corners"
 
         w_eval, h_eval = 1000, 1000   #500,500
         w_corners, h_corners = 1000, 1000   #500,500
